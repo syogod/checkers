@@ -90,22 +90,22 @@ void checkers::update_avail_moves(int player_num)
     avail_moves->clear();
     int player_offset = -1 * ((player_num * 2) - 3);
 
-    for(int i = 0; i < 8; ++i)
+    for(int y = 0; y < 8; ++y)
     {
-        for(int j = 0; j < 8; ++j)
+        for(int x = 0; x < 8; ++x)
         {
             moves temp_move;
-            if(m_board[i][j] == player_char)
+            if(m_board[y][x] == player_char)
             {
                 coord potential_loc;
-                potential_loc.y = i + player_offset;
-                potential_loc.x = j + 1;
+                potential_loc.y = y + player_offset;
+                potential_loc.x = x + 1;
                 if(is_on_board(potential_loc))
                 {
                     if(is_freespace(potential_loc))    //free space, move valid
                     {
-                        temp_move.start.x = j;
-                        temp_move.start.y = i;
+                        temp_move.start.x = x;
+                        temp_move.start.y = y;
                         temp_move.end.x = potential_loc.x;
                         temp_move.end.y = potential_loc.y;
                         avail_moves->push_back(temp_move);
@@ -117,8 +117,8 @@ void checkers::update_avail_moves(int player_num)
                         potential_loc.y += player_offset;
                         if(is_freespace(potential_loc))
                         {
-                            temp_move.start.x = j;
-                            temp_move.start.y = i;
+                            temp_move.start.x = x;
+                            temp_move.start.y = y;
                             temp_move.end.x = potential_loc.x;
                             temp_move.end.y = potential_loc.y;
                             temp_move.jumped_pieces.push_back({(short)(potential_loc.x - 1), (short)(potential_loc.y - player_offset)});
@@ -126,15 +126,15 @@ void checkers::update_avail_moves(int player_num)
                         }
                     }
                 }
-                potential_loc.x = j - 1;
-                potential_loc.y = i + player_offset;
+                potential_loc.x = x - 1;
+                potential_loc.y = y + player_offset;
 
                 if(is_on_board(potential_loc))
                 {
                     if(is_freespace(potential_loc))    //freespace, move valid
                     {
-                        temp_move.start.x = j;
-                        temp_move.start.y = i;
+                        temp_move.start.x = x;
+                        temp_move.start.y = y;
                         temp_move.end.x = potential_loc.x;
                         temp_move.end.y = potential_loc.y;
                         avail_moves->push_back(temp_move);
@@ -145,23 +145,23 @@ void checkers::update_avail_moves(int player_num)
                         stack<coord> jumps;
                         set<coord> visited;
 
-                        jumps.push({j,i});
-                        visited.insert({j,i});
+                        jumps.push({x,y});
+                        visited.insert({x,y});
 
                         while(!jumps.empty())
                         {
-                            potential_loc.x =
+                            potential_loc.x = //test
                         }
                         /* do a depth first graph traversal using a stack 
                         *  starting node put on stack, mark as visited
-                        *  go to next unvisited node, put on start, rinse repeat 
+                        *  go to next unvisited node, put on stack, rinse repeat 
                         *  if no next unvisited node, add as potential move and pop from stack */
                         potential_loc.x -= 1;
                         potential_loc.y += player_offset;
                         if(is_freespace(potential_loc))
                         {
-                            temp_move.start.x = j;
-                            temp_move.start.y = i;
+                            temp_move.start.x = x;
+                            temp_move.start.y = y;
                             temp_move.end.x = potential_loc.x;
                             temp_move.end.y = potential_loc.y;
                             avail_moves->push_back(temp_move);
