@@ -30,24 +30,24 @@ void checkers::print_board()
 void checkers::reset_board()
 {
     cout << "Player 1, choose your piece (lowercase letters only): " << endl;
-    cin >> m_player1_char; 
+    cin >> m_player_char[0]; 
 
 
     cout << "Player 2, choose your piece (lowercase letters only): " << endl;
-    cin >> m_player2_char;
+    cin >> m_player_char[1];
 
-    for(int i = 0; i < 8; ++i)
+    for(int y = 0; y < 8; ++y)
     {
-        for(int j = 0; j < 8; ++j)
+        for(int x = 0; x < 8; ++x)
         {
-            if((i+j) % 2 == 1)
+            if((y+x) % 2 == 1)
             {
-                if(i < 3)
-                    m_board[i][j] = m_player1_char;
-                else if(i > 4)
-                    m_board[i][j] = m_player2_char;
+                if(y < 3)
+                    m_board[y][x] = m_player_char[0];
+                else if(y > 4)
+                    m_board[y][x] = m_player_char[1];
                 else
-                    m_board[i][j] = '|';
+                    m_board[y][x] = '|';
             }
         }
     }
@@ -57,10 +57,10 @@ void checkers::reset_board()
 
 void checkers::set_board()
 {
-    m_player1_char = '1';
-    m_player2_char = '2';
-    char p1 = m_player1_char;
-    char p2 = m_player2_char;
+    m_player_char[0] = '1';
+    m_player_char[1] = '2';
+    char p1 = m_player_char[0];
+    char p2 = m_player_char[1];
     m_board[0] = {' ','|',' ', p1,' ', p1,' ', p1,' ', p1}; 
     m_board[1] = { p1,' ', p1,' ', p1,' ', p1,' ', p1,' '};
     m_board[2] = {' ', p1,' ', p1,' ', p1,' ', p1,' ', p1}; 
@@ -75,101 +75,104 @@ void checkers::update_avail_moves(int player_num)
 {
     vector<moves> *avail_moves;
     char player_char;
+    char opp_char;
 
     if(player_num == 1)
     {
         avail_moves = &m_p1_avail_moves;
-        player_char = m_player1_char;
+        player_char = m_player_char[0];
+        opp_char = m_player_char[1];
     }
     else
     {
         avail_moves = &m_p2_avail_moves;
-        player_char = m_player2_char;
+        player_char = m_player_char[1];
+        opp_char = m_player_char[0];
     }
 
     avail_moves->clear();
-    int player_offset = -1 * ((player_num * 2) - 3);
+    int player_offset = -1 * ((player_num * 2) - 3);    // +1 (down) if player1, -1 (up) if player2
 
+    //go through each square, if current player, check for avail moves
     for(int y = 0; y < 8; ++y)
     {
         for(int x = 0; x < 8; ++x)
         {
-            moves temp_move;
             if(m_board[y][x] == player_char)
             {
+                moves temp_move;
                 coord potential_loc;
                 potential_loc.y = y + player_offset;
-                potential_loc.x = x + 1;
-                if(is_on_board(potential_loc))
+                potential_loc.x = x + 1;                //check forward-right move first
+                if(is_on_board(potential_loc) && is_freespace(potential_loc))       //free space, valid move
                 {
-                    if(is_freespace(potential_loc))    //free space, move valid
-                    {
-                        temp_move.start.x = x;
-                        temp_move.start.y = y;
-                        temp_move.end.x = potential_loc.x;
-                        temp_move.end.y = potential_loc.y;
-                        avail_moves->push_back(temp_move);
-                    }
-                    else if(m_board[potential_loc.y][potential_loc.x] == player_char) {}  //occupied by own piece, not valid move
-                    else    //occupied by opponent, check if jumpable
-                    {
-                        potential_loc.x += 1;
-                        potential_loc.y += player_offset;
-                        if(is_freespace(potential_loc))
-                        {
-                            temp_move.start.x = x;
-                            temp_move.start.y = y;
-                            temp_move.end.x = potential_loc.x;
-                            temp_move.end.y = potential_loc.y;
-                            temp_move.jumped_pieces.push_back({(short)(potential_loc.x - 1), (short)(potential_loc.y - player_offset)});
-                            avail_moves->push_back(temp_move);
-                        }
-                    }
+                    temp_move.start.x = x;
+                    temp_move.start.y = y;
+                    temp_move.end.x = potential_loc.x;
+                    temp_move.end.y = potential_loc.y;
+                    avail_moves->push_back(temp_move);
                 }
-                potential_loc.x = x - 1;
-                potential_loc.y = y + player_offset;
-
-                if(is_on_board(potential_loc))
+                else if(is_on_board(potential_loc) && 
+                        m_board[potential_loc.y][potential_loc.x] == player_char) {}    //occupied by own piece, not valid move
+                else if(is_on_board(potential_loc) && 
+                        m_board[potential_loc.y][potential_loc.x] == opp_char)          //occupied by opponent, check if jumpable
                 {
-                    if(is_freespace(potential_loc))    //freespace, move valid
+                    potential_loc.x += 1;
+                    potential_loc.y += player_offset;
+                    if(is_freespace(potential_loc))     //is jumpable
                     {
-                        temp_move.start.x = x;
-                        temp_move.start.y = y;
-                        temp_move.end.x = potential_loc.x;
-                        temp_move.end.y = potential_loc.y;
-                        avail_moves->push_back(temp_move);
-                    }
-                    else if(m_board[potential_loc.y][potential_loc.x] == player_char) {}    //occupied by own piece, not valid move
-                    else    //occupied by opponent, check if jumpable
-                    {
-                        stack<coord> jumps;
-                        set<coord> visited;
+                    stack<coord> jumps;
+                    set<coord> visited;
 
-                        jumps.push({x,y});
-                        visited.insert({x,y});
+                        // jumps.push({x,y});
+                        // visited.insert({x,y});
 
-                        while(!jumps.empty())
-                        {
-                            potential_loc.x = //test
-                        }
+                        // while(!jumps.empty())
+                        // {
+                        //     potential_loc.x = //test
+                        // }
                         /* do a depth first graph traversal using a stack 
                         *  starting node put on stack, mark as visited
                         *  go to next unvisited node, put on stack, rinse repeat 
                         *  if no next unvisited node, add as potential move and pop from stack */
-                        potential_loc.x -= 1;
-                        potential_loc.y += player_offset;
-                        if(is_freespace(potential_loc))
-                        {
-                            temp_move.start.x = x;
-                            temp_move.start.y = y;
-                            temp_move.end.x = potential_loc.x;
-                            temp_move.end.y = potential_loc.y;
-                            avail_moves->push_back(temp_move);
-                        }
-
+                        temp_move.start.x = x;
+                        temp_move.start.y = y;
+                        temp_move.end.x = potential_loc.x;
+                        temp_move.end.y = potential_loc.y;
+                        temp_move.jumped_pieces.push_back({(short)(potential_loc.x - 1), (short)(potential_loc.y - player_offset)});
+                        avail_moves->push_back(temp_move);
                     }
                 }
+                potential_loc.x = x - 1;
+                potential_loc.y = y + player_offset;
+                temp_move.jumped_pieces.clear();
 
+                if(is_on_board(potential_loc) && is_freespace(potential_loc))       //free space, move valid
+                {
+                    temp_move.start.x = x;
+                    temp_move.start.y = y;
+                    temp_move.end.x = potential_loc.x;
+                    temp_move.end.y = potential_loc.y;
+                    avail_moves->push_back(temp_move);
+                }
+                else if(is_on_board(potential_loc) &&
+                        m_board[potential_loc.y][potential_loc.x] == player_char) {}    //occupied by own piece, not valid move
+                else if(is_on_board(potential_loc) &&
+                        m_board[potential_loc.y][potential_loc.x] == opp_char)          //occupied by opponent, check if jumpable
+                {
+
+                    potential_loc.x -= 1;
+                    potential_loc.y += player_offset;
+                    if(is_freespace(potential_loc))
+                    {
+                        temp_move.start.x = x;
+                        temp_move.start.y = y;
+                        temp_move.end.x = potential_loc.x;
+                        temp_move.end.y = potential_loc.y;
+                        temp_move.jumped_pieces.push_back({(short)(potential_loc.x + 1), (short)(potential_loc.y - player_offset)});
+                        avail_moves->push_back(temp_move);
+                    }
+                }
             }
         }
     }

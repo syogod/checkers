@@ -25,7 +25,8 @@ class checkers
 {
     private:
         vector<vector<char>> m_board;
-        char m_player1_char, m_player2_char;
+        char m_player_char[2];
+        //char m_player1_char, m_player2_char;
         char m_cur_player;
         vector<moves> m_p1_avail_moves;
         vector<moves> m_p2_avail_moves;
