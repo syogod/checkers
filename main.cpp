@@ -2,7 +2,7 @@
 
 int main()
 {
-    checkers game;
+    Checkers game;
 
 //    game.reset_board();
 //    game.print_board();

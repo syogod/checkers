@@ -1,6 +1,6 @@
 #include "checkers.h"
 
-void checkers::print_board()
+void Checkers::print_board()
 {
     cout << "  ";
     for(int i = 1; i < 9; ++i)
@@ -9,17 +9,21 @@ void checkers::print_board()
     }
 
     cout << endl << "  //===============================\\\\\n";
-    for(int i = 0; i < 8; ++i)
+
+    coord temp_coord;
+    for(int y = 0; y < 8; ++y)
     {
-        cout << (char)(i + (int)'a') << " |";
-        for(int j = 0; j < 8; ++j)
+        temp_coord.y = y;
+        cout << (char)(y + (int)'a') << " |";
+        for(int x = 0; x < 8; ++x)
         {
-            if((i+j) % 2 == 1)
-                cout << "||" << m_board[i][j] << "|";
+            temp_coord.x = x;
+            if((y+x) % 2 == 1)
+                cout << "||" <<  m_board.get_piece(temp_coord) << "|";
             else
-                cout << "| " << m_board[i][j] << " ";
+                cout << "| " << m_board.get_piece(temp_coord) << " ";
         }
-        if(i != 7)
+        if(y != 7)
             cout << "||\n" << "  ||===+===+===+===+===+===+===+===||\n";
         else
             cout << "||\n";
@@ -27,7 +31,7 @@ void checkers::print_board()
     cout << "  \\\\===============================//" << endl;
 }
 
-void checkers::reset_board()
+void Checkers::reset_board()
 {
     cout << "Player 1, choose your piece (lowercase letters only): " << endl;
     cin >> m_player_char[0]; 
@@ -36,18 +40,21 @@ void checkers::reset_board()
     cout << "Player 2, choose your piece (lowercase letters only): " << endl;
     cin >> m_player_char[1];
 
+    coord temp_coord;
     for(int y = 0; y < 8; ++y)
     {
+        temp_coord.y = y;
         for(int x = 0; x < 8; ++x)
         {
+            temp_coord.x = x;
             if((y+x) % 2 == 1)
             {
                 if(y < 3)
-                    m_board[y][x] = m_player_char[0];
+                    m_board.set_piece(temp_coord, m_player_char[0]);
                 else if(y > 4)
-                    m_board[y][x] = m_player_char[1];
+                    m_board.set_piece(temp_coord, m_player_char[1]);
                 else
-                    m_board[y][x] = '|';
+                    m_board.set_piece(temp_coord, '|');
             }
         }
     }
@@ -55,23 +62,28 @@ void checkers::reset_board()
     m_p2_avail_moves.clear();
 }
 
-void checkers::set_board()
+void Checkers::set_board()
 {
     m_player_char[0] = '1';
     m_player_char[1] = '2';
     char p1 = m_player_char[0];
     char p2 = m_player_char[1];
-    m_board[0] = {' ','|',' ', p1,' ', p1,' ', p1,' ', p1}; 
-    m_board[1] = { p1,' ', p1,' ', p1,' ', p1,' ', p1,' '};
-    m_board[2] = {' ', p1,' ', p1,' ', p1,' ', p1,' ', p1}; 
-    m_board[3] = {'|',' ','|',' ','|',' ','|',' ','|',' '};
-    m_board[4] = {' ','|',' ', p1,' ','|',' ','|',' ','|'};
-    m_board[5] = { p2,' ', p2,' ', p2,' ', p2,' ', p2,' '};
-    m_board[6] = {' ', p2,' ', p2,' ', p2,' ', p2,' ', p2};
-    m_board[7] = { p2,' ', p2,' ', p2,' ', p2,' ', p2,' '};
+    m_board.set_row(0, {' ','|',' ', p1,' ', p1,' ', p1,' ', p1}); 
+    m_board.set_row(1, { p1,' ', p1,' ', p1,' ', p1,' ', p1,' '});
+    m_board.set_row(2, {' ', p1,' ', p1,' ', p1,' ', p1,' ', p1}); 
+    m_board.set_row(3, {'|',' ','|',' ','|',' ','|',' ','|',' '});
+    m_board.set_row(4, {' ','|',' ', p1,' ','|',' ','|',' ','|'});
+    m_board.set_row(5, { p2,' ', p2,' ', p2,' ', p2,' ', p2,' '});
+    m_board.set_row(6, {' ', p2,' ', p2,' ', p2,' ', p2,' ', p2});
+    m_board.set_row(7, { p2,' ', p2,' ', p2,' ', p2,' ', p2,' '});
 }
 
-void checkers::update_avail_moves(int player_num)
+vector<moves> Checkers::valid_moves(vector<vector<char>> board, coord piece, direction direc)
+{
+    cout << board[piece.x][piece.y];
+}
+
+void Checkers::update_avail_moves(int player_num)
 {
     vector<moves> *avail_moves;
     char player_char;
@@ -94,11 +106,14 @@ void checkers::update_avail_moves(int player_num)
     int player_offset = -1 * ((player_num * 2) - 3);    // +1 (down) if player1, -1 (up) if player2
 
     //go through each square, if current player, check for avail moves
+    coord temp_loc; 
     for(int y = 0; y < 8; ++y)
     {
+        temp_loc.y = y;
         for(int x = 0; x < 8; ++x)
         {
-            if(m_board[y][x] == player_char)
+            temp_loc.x = x;
+            if(m_board.get_piece(temp_loc) == player_char)
             {
                 moves temp_move;
                 coord potential_loc;
@@ -113,9 +128,9 @@ void checkers::update_avail_moves(int player_num)
                     avail_moves->push_back(temp_move);
                 }
                 else if(is_on_board(potential_loc) && 
-                        m_board[potential_loc.y][potential_loc.x] == player_char) {}    //occupied by own piece, not valid move
+                        m_board.get_piece(potential_loc) == player_char) {}    //occupied by own piece, not valid move
                 else if(is_on_board(potential_loc) && 
-                        m_board[potential_loc.y][potential_loc.x] == opp_char)          //occupied by opponent, check if jumpable
+                        m_board.get_piece(potential_loc) == opp_char)          //occupied by opponent, check if jumpable
                 {
                     potential_loc.x += 1;
                     potential_loc.y += player_offset;
@@ -156,9 +171,9 @@ void checkers::update_avail_moves(int player_num)
                     avail_moves->push_back(temp_move);
                 }
                 else if(is_on_board(potential_loc) &&
-                        m_board[potential_loc.y][potential_loc.x] == player_char) {}    //occupied by own piece, not valid move
+                        m_board.get_piece(potential_loc) == player_char) {}    //occupied by own piece, not valid move
                 else if(is_on_board(potential_loc) &&
-                        m_board[potential_loc.y][potential_loc.x] == opp_char)          //occupied by opponent, check if jumpable
+                        m_board.get_piece(potential_loc) == opp_char)          //occupied by opponent, check if jumpable
                 {
 
                     potential_loc.x -= 1;
@@ -178,7 +193,7 @@ void checkers::update_avail_moves(int player_num)
     }
 }
 
-void checkers::print_avail_moves(int player_num)
+void Checkers::print_avail_moves(int player_num)
 {
     cout << "\nAvailable Moves\n---------------\n";
     vector<moves> *avail_moves;
@@ -206,7 +221,7 @@ void checkers::print_avail_moves(int player_num)
     }
 }
 
-bool checkers::is_on_board(coord loc)
+bool Checkers::is_on_board(coord loc)
 {
     if(loc.x > 7 || loc.x < 0)
         return false;
@@ -216,15 +231,15 @@ bool checkers::is_on_board(coord loc)
     return true;
 }
 
-bool checkers::is_freespace(coord loc)
+bool Checkers::is_freespace(coord loc)
 {
-    if(m_board[loc.y][loc.x] == '|')
+    if(m_board.get_piece(loc) == '|')
         return true;
     else
         return false;
 }
 
-bool checkers::is_jumpable(coord start_piece, coord over_piece)
+bool Checkers::is_jumpable(coord start_piece, coord over_piece)
 {
     coord end;
     end.x = start_piece.x + 2 * (over_piece.x - start_piece.x);
