@@ -46,7 +46,7 @@ class Checkers
         void reset_board();
         void set_board();
         void print_board();
-        vector<moves> valid_moves(vector<vector<char> > board, coord piece, direction direc);
+        vector<moves> valid_moves(board m_board, coord piece, direction direc);
         void update_avail_moves(int player_num);
         void print_avail_moves(int player_num);
         bool is_on_board(coord loc);
