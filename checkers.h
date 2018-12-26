@@ -61,9 +61,10 @@ class Checkers
         void reset_board();
         void set_board();
         void print_board();
-        vector<Moves> valid_moves(Board m_board, Token piece, Direction direc);
+        vector<Moves> valid_moves(Board m_board, Token piece, Direction direc, bool is_double_jump);
         void update_avail_moves(int player_num);
         void print_avail_moves(int player_num);
+        Board make_move(Board board, Moves move);
         bool is_on_board(Coord loc);
         bool is_freespace(Coord loc);
         bool is_jumpable(Coord start_piece, Coord over_piece);

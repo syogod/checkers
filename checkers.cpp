@@ -84,14 +84,12 @@ void Checkers::set_board()
 
 // gets all valid moves for given piece
 // if jump is available, use recursion to check for double-jumps
-vector<Moves> Checkers::valid_moves(Board m_board, Token piece, Direction direc)
+vector<Moves> Checkers::valid_moves(Board m_board, Token piece, Direction direc, bool is_double_jump)
 {
     Moves temp_move;
     vector<Moves> avail_moves;
-    // char player_char = m_board.get_piece(piece.loc);
 
     char opp_char, opp_char_king;
-    // if(m_player_char[0] == player_char || m_player_char[0] == (char)((int) player_char + 32))
     if(piece.player_num = 1)
     {
         opp_char = m_player_char[0].base_player_char;
@@ -106,7 +104,7 @@ vector<Moves> Checkers::valid_moves(Board m_board, Token piece, Direction direc)
     Coord potential_loc;
     potential_loc.y = piece.loc.y + direc;
     potential_loc.x = piece.loc.x - 1;                                  //check forward-left move first
-    if(is_on_board(potential_loc) && is_freespace(potential_loc))       //free space, valid move
+    if(is_on_board(potential_loc) && is_freespace(potential_loc) && !is_double_jump)       //free space, valid move
     {
         temp_move.start = piece.loc;
         temp_move.end = potential_loc;
@@ -123,12 +121,17 @@ vector<Moves> Checkers::valid_moves(Board m_board, Token piece, Direction direc)
         potential_loc.y += direc;
         if(is_freespace(potential_loc))                                 //is jumpable
         {
-            stack<Coord> jumps;
-            set<Coord> visited;
+            Board temp_board = m_board;
+            Token temp_token = piece;
+            temp_token.loc = temp_move.end;
+            temp_board = make_move(temp_board, temp_move);
             temp_move.start = piece.loc;
             temp_move.end = potential_loc;
             temp_move.jumped_pieces.push_back({(short)(potential_loc.x - 1), (short)(potential_loc.y - direc)});
             avail_moves.push_back(temp_move);
+            vector<Moves> double_jump_moves = valid_moves(temp_board, temp_token, direc, true);
+            if(!double_jump_moves.empty())
+                avail_moves.insert(avail_moves.end(), double_jump_moves.begin(), double_jump_moves.end());
         }
     }
 
@@ -136,7 +139,7 @@ vector<Moves> Checkers::valid_moves(Board m_board, Token piece, Direction direc)
     potential_loc.y = piece.loc.y + direc;
     temp_move.jumped_pieces.clear();
 
-    if(is_on_board(potential_loc) && is_freespace(potential_loc))       //free space, valid move
+    if(is_on_board(potential_loc) && is_freespace(potential_loc) && !is_double_jump)       //free space, valid move
     {
         temp_move.start = piece.loc;
         temp_move.end = potential_loc;
@@ -153,12 +156,17 @@ vector<Moves> Checkers::valid_moves(Board m_board, Token piece, Direction direc)
         potential_loc.y += direc;
         if(is_freespace(potential_loc))                                 //is jumpable
         {
-            stack<Coord> jumps;
-            set<Coord> visited;
+            Board temp_board = m_board;
+            Token temp_token = piece;
+            temp_token.loc = temp_move.end;
+            temp_board = make_move(temp_board, temp_move);
             temp_move.start = piece.loc;
             temp_move.end = potential_loc;
             temp_move.jumped_pieces.push_back({(short)(potential_loc.x - 1), (short)(potential_loc.y - direc)});
             avail_moves.push_back(temp_move);
+            vector<Moves> double_jump_moves = valid_moves(temp_board, temp_token, direc, true);
+            if(!double_jump_moves.empty())
+                avail_moves.insert(avail_moves.end(), double_jump_moves.begin(), double_jump_moves.end());
         }
     }
 
@@ -171,7 +179,7 @@ vector<Moves> Checkers::valid_moves(Board m_board, Token piece, Direction direc)
             direc = up;
         potential_loc.y = piece.loc.y + direc;
         potential_loc.x = piece.loc.x - 1;                                  //check forward-left move first
-        if(is_on_board(potential_loc) && is_freespace(potential_loc))       //free space, valid move
+        if(is_on_board(potential_loc) && is_freespace(potential_loc) && !is_double_jump)       //free space, valid move
         {
             temp_move.start = piece.loc;
             temp_move.end = potential_loc;
@@ -188,12 +196,17 @@ vector<Moves> Checkers::valid_moves(Board m_board, Token piece, Direction direc)
             potential_loc.y += direc;
             if(is_freespace(potential_loc))                                 //is jumpable
             {
-                stack<Coord> jumps;
-                set<Coord> visited;
+                Board temp_board = m_board;
+                Token temp_token = piece;
+                temp_token.loc = temp_move.end;
+                temp_board = make_move(temp_board, temp_move);
                 temp_move.start = piece.loc;
                 temp_move.end = potential_loc;
                 temp_move.jumped_pieces.push_back({(short)(potential_loc.x - 1), (short)(potential_loc.y - direc)});
                 avail_moves.push_back(temp_move);
+                vector<Moves> double_jump_moves = valid_moves(temp_board, temp_token, direc, true);
+                if(!double_jump_moves.empty())
+                    avail_moves.insert(avail_moves.end(), double_jump_moves.begin(), double_jump_moves.end());
             }
         }
 
@@ -201,7 +214,7 @@ vector<Moves> Checkers::valid_moves(Board m_board, Token piece, Direction direc)
         potential_loc.y = piece.loc.y + direc;
         temp_move.jumped_pieces.clear();
 
-        if(is_on_board(potential_loc) && is_freespace(potential_loc))       //free space, valid move
+        if(is_on_board(potential_loc) && is_freespace(potential_loc) && !is_double_jump)       //free space, valid move
         {
             temp_move.start = piece.loc;
             temp_move.end = potential_loc;
@@ -218,12 +231,17 @@ vector<Moves> Checkers::valid_moves(Board m_board, Token piece, Direction direc)
             potential_loc.y += direc;
             if(is_freespace(potential_loc))                                 //is jumpable
             {
-                stack<Coord> jumps;
-                set<Coord> visited;
+                Board temp_board = m_board;
+                Token temp_token = piece;
+                temp_token.loc = temp_move.end;
+                temp_board = make_move(temp_board, temp_move);
                 temp_move.start = piece.loc;
                 temp_move.end = potential_loc;
                 temp_move.jumped_pieces.push_back({(short)(potential_loc.x - 1), (short)(potential_loc.y - direc)});
                 avail_moves.push_back(temp_move);
+                vector<Moves> double_jump_moves = valid_moves(temp_board, temp_token, direc, true);
+                if(!double_jump_moves.empty())
+                    avail_moves.insert(avail_moves.end(), double_jump_moves.begin(), double_jump_moves.end());
             }
         }
 
@@ -236,22 +254,16 @@ void Checkers::update_avail_moves(int player_num)
 {
     vector<Moves> *avail_moves;
     Token player_token;
-    // char player_char;
-    // char opp_char;
 
     if(player_num == 1)
     {
         avail_moves = &m_p1_avail_moves;
         player_token = m_player_char[0];
-        //player_char = m_player_char[0];
-        //opp_char = m_player_char[1];
     }
     else
     {
         avail_moves = &m_p2_avail_moves;
         player_token = m_player_char[1];
-        // player_char = m_player_char[1];
-        // opp_char = m_player_char[0];
     }
 
     avail_moves->clear();
@@ -259,7 +271,6 @@ void Checkers::update_avail_moves(int player_num)
 
     player_offset = (player_num == 1) ? down : up;
 
-    //direction player_offset = -1 * ((player_num * 2) - 3);    // +1 (down) if player1, -1 (up) if player2
 
     //go through each square, if current player, check for avail moves
     Coord temp_loc; 
@@ -277,11 +288,20 @@ void Checkers::update_avail_moves(int player_num)
                 else
                     player_token.is_king = false;
                 player_token.loc = temp_loc;
-                vector<Moves> temp_moves = valid_moves(m_board,player_token,player_offset);
+                vector<Moves> temp_moves = valid_moves(m_board,player_token,player_offset, false);
                 avail_moves->insert(avail_moves->end(),temp_moves.begin(), temp_moves.end());
             }
         }
     }
+}
+
+Board Checkers::make_move(Board board, Moves move)
+{
+    board.set_piece(move.end,board.get_piece(move.start));
+    board.set_piece(move.start, '|');
+    for(vector<Coord>::iterator iter = move.jumped_pieces.begin(); iter != move.jumped_pieces.end(); iter++)
+        board.set_piece(*iter, '|');
+    return board;
 }
 
 void Checkers::print_avail_moves(int player_num)
